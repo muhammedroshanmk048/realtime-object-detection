@@ -85,7 +85,8 @@ button { font: inherit; cursor: pointer; }
 }
 .media img, .media video { display: block; max-width: 100%; max-height: calc(100vh - 80px); object-fit: contain; }
 .media.live { position: relative; }
-.media.live video { transform: scaleX(-1); width: 100%; }
+.media.live video { width: 100%; }
+.media.live.mirror video { transform: scaleX(-1); } /* selfie view for the webcam only */
 /* Not mirrored: live.js mirrors box coordinates itself so label text stays readable */
 .media.live canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 .panel {

@@ -43,6 +43,7 @@
 
     <div class="pane hidden" data-pane="live">
       <button class="primary" id="camToggle">Start camera</button>
+      <button class="link" id="camSample">No camera? Run it live on the sample clip</button>
       <label class="check"><input type="checkbox" id="liveTrack" checked /> Track IDs across frames</label>
       <p class="hint">Runs entirely in your browser with ONNX Runtime Web (WebGPU or WebAssembly). No video leaves your device.</p>
     </div>
@@ -107,7 +108,7 @@
         <p>The same ONNX model, running on your device with ONNX Runtime Web. Zero server CPU.</p>
       </div>
       <div class="result hidden" id="liveResult">
-        <figure class="media live">
+        <figure class="media live" id="liveMedia">
           <video id="cam" playsinline muted></video>
           <canvas id="overlay"></canvas>
         </figure>

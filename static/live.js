@@ -15,6 +15,7 @@ let size = 320;
 let stream = null;
 let running = false;
 let tracker = null;
+let mirror = true; // webcam is shown as a selfie view; the sample clip is not
 
 // ---------- Model ----------
 
@@ -164,8 +165,9 @@ function drawBoxes(canvas, items) {
   ctx.font = `600 ${Math.max(12, Math.round(W / 60))}px Inter, system-ui, sans-serif`;
   ctx.textBaseline = "top";
   for (const { box, label, key } of items) {
-    // The video is mirrored with CSS (selfie view); mirror coordinates here so text stays readable
-    const x1 = W - box[2], x2 = W - box[0], [, y1, , y2] = box;
+    // A webcam is mirrored with CSS (selfie view); mirror coordinates here so text stays readable
+    const [x1, x2] = mirror ? [W - box[2], W - box[0]] : [box[0], box[2]];
+    const [, y1, , y2] = box;
     const color = colorFor(key);
     ctx.strokeStyle = color;
     ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
@@ -226,15 +228,26 @@ async function loop() {
   }
 }
 
-async function start() {
+// useSample: run on the bundled clip instead of a camera, for visitors without one
+async function start(useSample = false) {
   const button = $("camToggle");
-  button.disabled = true;
+  button.disabled = $("camSample").disabled = true;
   try {
-    if (!navigator.mediaDevices?.getUserMedia) throw new Error("Camera access needs HTTPS (or localhost) and a modern browser");
-    stream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: "user" }, audio: false });
-    await loadModel();
     const video = $("cam");
-    video.srcObject = stream;
+    if (useSample) {
+      await loadModel();
+      video.srcObject = null;
+      video.src = "/samples/crosswalk.mp4";
+      video.loop = true;
+    } else {
+      if (!navigator.mediaDevices?.getUserMedia) throw new Error("Camera access needs HTTPS (or localhost) and a modern browser");
+      stream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: "user" }, audio: false });
+      await loadModel();
+      video.removeAttribute("src");
+      video.srcObject = stream;
+    }
+    mirror = !useSample;
+    $("liveMedia").classList.toggle("mirror", mirror);
     await video.play();
     tracker = new Tracker();
     $("backend").textContent = `${backend === "webgpu" ? "WebGPU" : "WebAssembly (CPU)"} · YOLO26n ${size} px · ONNX Runtime Web ${ORT_VERSION}`;
@@ -242,15 +255,19 @@ async function start() {
     $("liveResult").classList.remove("hidden");
     setStatus("");
     running = true;
-    button.textContent = "Stop camera";
+    button.textContent = useSample ? "Stop" : "Stop camera";
     button.classList.add("stop");
     loop().catch((e) => { setStatus(`Inference failed: ${e.message}`, true); stop(); });
   } catch (e) {
-    const msg = e.name === "NotAllowedError" ? "Camera permission was denied" : e.name === "NotFoundError" ? "No camera found" : e.message;
+    const msg = {
+      NotAllowedError: "Camera permission was denied. Allow it in the address bar, or try the sample clip.",
+      NotFoundError: "No camera found. Check it is connected and switched on, or try the sample clip.",
+      NotReadableError: "The camera is in use by another app. Close it, or try the sample clip.",
+    }[e.name] || e.message;
     setStatus(msg, true);
     stop();
   } finally {
-    button.disabled = false;
+    button.disabled = $("camSample").disabled = false;
   }
 }
 
@@ -258,11 +275,16 @@ function stop() {
   running = false;
   stream?.getTracks().forEach((t) => t.stop());
   stream = null;
+  $("cam").pause();
   const button = $("camToggle");
   button.textContent = "Start camera";
   button.classList.remove("stop");
 }
 
 $("camToggle").addEventListener("click", () => (running ? stop() : start()));
+$("camSample").addEventListener("click", () => {
+  if (running) stop();
+  start(true);
+});
 // Release the camera when leaving the tab
 window.addEventListener("vt-tab", (e) => { if (e.detail !== "live" && running) stop(); });
