@@ -2,6 +2,8 @@
 
 Detect and track 80 kinds of everyday objects (people, cars, bikes, dogs, phones…) in **images**, **short videos** and **live on your webcam**, with an Ultralytics **YOLO26n** model.
 
+**Live demo: https://visiontrack-45cp.onrender.com** (free instance: the first visit after a quiet spell takes ~30–60 s to wake up)
+
 The same trained network runs in three places, each picked for where it fits best:
 
 | Where | Runtime | What it does |

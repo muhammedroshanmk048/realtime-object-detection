@@ -39,7 +39,7 @@ async function loadModel() {
   for (const ep of providers) {
     try {
       setStatus(`Starting the model on ${ep === "webgpu" ? "WebGPU" : "WebAssembly"}…`);
-      session = await ort.InferenceSession.create(model, { executionProviders: [ep], graphOptimizationLevel: "all" });
+      session = await ort.InferenceSession.create(model, { executionProviders: [ep], graphOptimizationLevel: "all", logSeverityLevel: 3 });
       backend = ep;
       break;
     } catch (e) {

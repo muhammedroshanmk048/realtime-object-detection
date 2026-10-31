@@ -76,7 +76,7 @@ What exists and what was decided along the way:
 - **Tests:** 26 pytest tests pass (`requirements-dev.txt`).
 - **Not done:** the optional `scripts/train.py`. The README GIF comes from `webcam_track.py` run on the sample clip, not from a webcam; the owner can re-record it from the webcam.
 
-Remaining: step 8 (owner pushes, deploys the Render Blueprint, verify live, then put the live URL in the README) and step 9 (portfolio card).
+Deployed: https://visiontrack-45cp.onrender.com (Render service `visiontrack`), verified live in Chrome on 2026-10-31. Portfolio card added in ../project-zap (pending owner approval to push).
 
 Steps:
 1. Local env: `.venv`, install `requirements-local.txt` (CPU torch from the PyTorch CPU index; large, run in the background). Confirm the nano model runs on the webcam with tracking (`scripts/webcam_track.py`).
