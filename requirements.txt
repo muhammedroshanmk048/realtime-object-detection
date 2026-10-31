@@ -1,0 +1,10 @@
+# Deployed app only: ONNX Runtime + NumPy inference, no PyTorch or Ultralytics.
+# Locally, the venv already has opencv-python from requirements-local.txt; don't install the
+# headless wheel next to it (both provide cv2). Use requirements-dev.txt for the test deps.
+fastapi==0.162.0
+uvicorn[standard]==0.54.0
+python-multipart==0.0.32
+pydantic-settings==2.16.2
+onnxruntime==1.31.1
+opencv-python-headless==5.0.0.93
+numpy==2.5.4

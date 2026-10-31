@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VisionTrack · Real-Time Object Detection</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='4' y='6' width='24' height='20' rx='3' fill='none' stroke='%23f97316' stroke-width='3'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%23f97316'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">Vision<span>Track</span></div>
+    <p class="hint">Detect and track 80 kinds of everyday objects with YOLO26n, in images, short videos or live on your webcam.</p>
+
+    <nav class="tabs" id="tabs">
+      <button data-tab="image" class="active">Image</button>
+      <button data-tab="video">Video</button>
+      <button data-tab="live">Live webcam</button>
+    </nav>
+
+    <div class="pane" data-pane="image">
+      <label class="drop" id="imageDrop">
+        <input type="file" id="imageFile" accept="image/jpeg,image/png,image/webp,image/bmp" hidden />
+        <strong>Drop an image here</strong>
+        <span>or click to browse · jpg png webp</span>
+      </label>
+      <button class="link" id="sampleImage">Try a sample image</button>
+    </div>
+
+    <div class="pane hidden" data-pane="video">
+      <label class="drop" id="videoDrop">
+        <input type="file" id="videoFile" accept="video/mp4,video/quicktime,video/webm,video/x-matroska,.mkv,.avi,.m4v" hidden />
+        <strong>Drop a short clip here</strong>
+        <span id="videoHint">or click to browse · mp4 mov webm</span>
+      </label>
+      <button class="link" id="sampleVideo">Try a sample clip</button>
+      <h3>Videos</h3>
+      <ul class="jobs" id="jobs"><li class="empty">No videos yet</li></ul>
+    </div>
+
+    <div class="pane hidden" data-pane="live">
+      <button class="primary" id="camToggle">Start camera</button>
+      <label class="check"><input type="checkbox" id="liveTrack" checked /> Track IDs across frames</label>
+      <p class="hint">Runs entirely in your browser with ONNX Runtime Web (WebGPU or WebAssembly). No video leaves your device.</p>
+    </div>
+
+    <label class="slider">
+      <span>Confidence threshold <b id="confValue"></b></span>
+      <input type="range" id="conf" min="0.05" max="0.95" step="0.05" />
+    </label>
+
+    <div class="status" id="status"></div>
+    <p class="hint limits" id="limits"></p>
+  </aside>
+
+  <main class="main">
+    <section class="view" data-view="image">
+      <div class="welcome" id="imageWelcome">
+        <h1>See what's in a picture</h1>
+        <p>YOLO26n exported to ONNX · NumPy pre/post-processing · no PyTorch on the server</p>
+      </div>
+      <div class="result hidden" id="imageResult">
+        <figure class="media"><img id="imageOut" alt="Image with detected objects outlined" /></figure>
+        <aside class="panel">
+          <h3>Objects</h3>
+          <ul class="counts" id="imageCounts"></ul>
+          <h3>Detections</h3>
+          <ol class="dets" id="imageDets"></ol>
+          <p class="meta" id="imageMeta"></p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="view hidden" data-view="video">
+      <div class="welcome" id="videoWelcome">
+        <h1>Track objects through a clip</h1>
+        <p>Frames sampled with ffmpeg · YOLO26n detections · SORT-style tracker in NumPy · H.264 output</p>
+      </div>
+      <div class="progress hidden" id="progress">
+        <h2 id="progressTitle"></h2>
+        <ol class="steps" id="steps">
+          <li data-step="queued">Queued</li>
+          <li data-step="reading">Reading</li>
+          <li data-step="detecting">Detecting + tracking</li>
+          <li data-step="done">Done</li>
+        </ol>
+        <div class="bar"><div id="bar"></div></div>
+        <p class="progress-msg" id="progressMsg"></p>
+      </div>
+      <div class="result hidden" id="videoResult">
+        <figure class="media"><video id="videoOut" controls loop muted playsinline></video></figure>
+        <aside class="panel">
+          <h3>Unique objects</h3>
+          <ul class="counts" id="videoCounts"></ul>
+          <p class="meta" id="videoMeta"></p>
+          <a class="button" id="videoDownload" download>Download video</a>
+        </aside>
+      </div>
+    </section>
+
+    <section class="view hidden" data-view="live">
+      <div class="welcome" id="liveWelcome">
+        <h1>Real-time detection in your browser</h1>
+        <p>The same ONNX model, running on your device with ONNX Runtime Web. Zero server CPU.</p>
+      </div>
+      <div class="result hidden" id="liveResult">
+        <figure class="media live">
+          <video id="cam" playsinline muted></video>
+          <canvas id="overlay"></canvas>
+        </figure>
+        <aside class="panel">
+          <div class="stats">
+            <div><b id="fps">–</b><span>FPS</span></div>
+            <div><b id="latency">–</b><span>ms / frame</span></div>
+          </div>
+          <p class="meta" id="backend"></p>
+          <h3>In view</h3>
+          <ul class="counts" id="liveCounts"></ul>
+          <h3 id="liveUniqueHead">Unique objects</h3>
+          <ul class="counts" id="liveUnique"></ul>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+  <script type="module" src="/static/live.js"></script>
+</body>
+</html>

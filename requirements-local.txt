@@ -1,0 +1,13 @@
+# Local-only: PyTorch + Ultralytics for the webcam tracking demo, ONNX export and
+# optional training. Never installed in the Docker image (torch alone is far over
+# the free host's 512 MB). Install CPU torch from the PyTorch CPU index:
+#   pip install -r requirements-local.txt --extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.15.0
+torchvision==0.29.2
+ultralytics==8.4.194
+opencv-python==5.0.0.93
+lap==0.5.13  # ByteTrack assignment; Ultralytics auto-installs it otherwise
+# ONNX export + parity checks against the deployed runtime
+onnx==1.23.2
+onnxslim==0.1.98
+onnxruntime==1.31.1

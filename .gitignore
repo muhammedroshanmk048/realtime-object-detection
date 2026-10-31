@@ -1,0 +1,8 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+# Ultralytics downloads and run outputs (the exported .onnx in models/ is committed)
+*.pt
+runs/

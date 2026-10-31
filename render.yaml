@@ -1,0 +1,7 @@
+# Render Blueprint: New > Blueprint > pick this repo. Free plan, no credit card, no API keys.
+services:
+  - type: web
+    name: visiontrack
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/health
